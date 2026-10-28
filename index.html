@@ -129,6 +129,16 @@ main{ position:relative; z-index:1; max-width:880px; margin:0 auto; padding:36px
 .pop-card p{ margin:10px 0 22px; font-size:17px; }
 .pop-close{ position:absolute; top:8px; right:8px; width:40px; height:40px; border:0; border-radius:50%; background:transparent; cursor:pointer; font-size:26px; line-height:1; }
 .pop-close:hover{ background:rgba(13,17,20,.1); }
+.pop-form{ display:flex; gap:8px; text-align:left; }
+.pop-form .input{ flex:1; min-width:0; background:var(--papel); color:var(--tinta); border-color:var(--tinta); }
+.pop-form .input::placeholder{ color:rgba(13,17,20,.45); }
+.pop-form .btn{ background:var(--tinta); color:var(--papel); flex:none; }
+.pop-err{ display:none; margin:8px 0 0; font-size:14px; font-weight:700; color:#9b2a15; text-align:left; }
+.pop-err.on{ display:block; }
+.pop-skip{ display:inline-block; margin-top:16px; color:var(--tinta); font-size:15px; font-weight:700; }
+.pop-skip[hidden]{ display:none; }
+.pop-done{ display:none; } .pop.hecho .pop-done{ display:block; } .pop.hecho .pop-pide{ display:none; }
+@media (max-width:420px){ .pop-form{ flex-direction:column; } }
 .row{ display:grid; grid-template-columns:1fr 1.3fr; gap:0 18px; }
 @media (max-width:640px){ .row{ grid-template-columns:1fr; } }
 .field{ display:block; margin-bottom:20px; min-width:0; }
@@ -275,10 +285,20 @@ footer a{ color:var(--papel); }
     <div class="pop-card">
       <button class="pop-close" id="popClose" type="button" aria-label="Cerrar">×</button>
       <span class="bicho" data-b="punto"></span>
-      <h2 id="hPop">¿Quieres más?</h2>
-      <p>Suscríbete a Perpetuo y recibe crónicas, ensayos y creación en tu correo.</p>
-      <a class="btn" href="https://perpetuo.global" id="popGo">Ir a perpetuo.global
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <div class="pop-pide">
+        <h2 id="hPop">¿Quieres más?</h2>
+        <p>Suscríbete a Perpetuo: crónicas, ensayos y creación gratis en tu correo. Te mandamos también los textos de hoy.</p>
+        <form class="pop-form" id="popForm" novalidate>
+          <input class="input" name="correo" type="email" autocomplete="email" inputmode="email" placeholder="tu@correo.com" aria-label="Tu correo" required>
+          <button class="btn" type="submit">Suscribirme</button>
+        </form>
+        <p class="pop-err" id="popErr" role="alert">Revisa tu correo; parece que le falta algo.</p>
+      </div>
+      <div class="pop-done" role="status">
+        <h2>¡Listo!</h2>
+        <p id="popDoneMsg">Revisa tu correo: ahí te esperan los textos de hoy.</p>
+      </div>
+      <a class="pop-skip" id="popSkip" hidden>Seguir al texto →</a>
     </div>
   </div>
 
@@ -292,7 +312,7 @@ footer a{ color:var(--papel); }
 const CONFIG = {
   WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbwT-y3gSV8uPT1GCx3CvsuJ8bUsZbu3JKWrsw-0xtJZN5kMTKIDlTw3a0akwfsg8-ABBw/exec", // URL /exec de la aplicación web de Correos.gs; vacío = modo demostración
   CLAVE_LOCAL: "perpetuo-mesa-ia-2026",
-  POPUP_SEG: 10
+  POPUP_SEG: 5
 };
 
 const ICO_DL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M5 20h14"/></svg>';
@@ -362,7 +382,6 @@ function listo(correo, repetido) {
   sus.classList.add("listo");
   const d = document.getElementById("done");
   d.classList.add("on");
-  d.focus({ preventScroll: true });
 }
 
 try {
@@ -371,9 +390,26 @@ try {
   if (previo && previo.pendiente) setTimeout(() => registrar(previo.pendiente), 0);
 } catch (e) {}
 
-/* pop-up: una vez por visita, y no a quien ya se suscribió aquí */
+/* pop-up de suscripción: a los POPUP_SEG segundos (una vez por visita) y al picar cualquier enlace,
+   mientras no se haya suscrito aquí. Si lo abrió un enlace, "Seguir" lleva a donde iba. */
 const pop = document.getElementById("pop");
+const popForm = document.getElementById("popForm");
+const popSkip = document.getElementById("popSkip");
 let antesDelPop = null;
+function abrirPop(destino) {
+  if (sus.classList.contains("listo") || pop.classList.contains("on")) return false;
+  antesDelPop = document.activeElement;
+  pop.classList.remove("hecho");
+  document.getElementById("popErr").classList.remove("on");
+  popSkip.hidden = !destino;
+  if (destino) {
+    ["href", "target", "rel", "download"].forEach(a => destino.hasAttribute(a) ? popSkip.setAttribute(a, destino.getAttribute(a)) : popSkip.removeAttribute(a));
+    popSkip.textContent = destino.closest("#lista") ? "No, gracias: seguir al texto →" : "No, gracias: seguir →";
+  }
+  pop.hidden = false;
+  requestAnimationFrame(() => { pop.classList.add("on"); popForm.correo.focus({ preventScroll: true }); });
+  return true;
+}
 function cerrarPop() {
   pop.classList.remove("on");
   setTimeout(() => { pop.hidden = true; }, 300);
@@ -382,11 +418,27 @@ function cerrarPop() {
 setTimeout(() => {
   let visto = false;
   try { visto = sessionStorage.getItem(CONFIG.CLAVE_LOCAL + "-pop") === "1"; sessionStorage.setItem(CONFIG.CLAVE_LOCAL + "-pop", "1"); } catch (e) {}
-  if (visto || sus.classList.contains("listo")) return;
-  antesDelPop = document.activeElement;
-  pop.hidden = false;
-  requestAnimationFrame(() => { pop.classList.add("on"); document.getElementById("popGo").focus({ preventScroll: true }); });
+  if (!visto) abrirPop(null);
 }, CONFIG.POPUP_SEG * 1000);
+document.addEventListener("click", e => {
+  const a = e.target.closest("a[href]");
+  if (!a || pop.contains(a) || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey) return;
+  const href = a.getAttribute("href");
+  if (href.startsWith("#") || href.startsWith("mailto:")) return;
+  if (abrirPop(a)) e.preventDefault();
+});
+popSkip.addEventListener("click", () => setTimeout(cerrarPop, 0));
+popForm.addEventListener("submit", e => {
+  e.preventDefault();
+  const correo = popForm.correo.value.trim().toLowerCase();
+  if (!correoOk(correo)) { document.getElementById("popErr").classList.add("on"); popForm.correo.focus(); return; }
+  suscribir({ nombre: "", correo, enviarTextos: true });
+  document.getElementById("popDoneMsg").textContent = `Revisa ${correo}: ahí te esperan los textos de hoy y, pronto, el próximo número.`;
+  pop.classList.add("hecho");
+  if (!popSkip.hidden) popSkip.textContent = popSkip.textContent.replace("No, gracias: s", "S");
+  (popSkip.hidden ? document.getElementById("popClose") : popSkip).focus({ preventScroll: true });
+});
+popForm.correo.addEventListener("input", () => document.getElementById("popErr").classList.remove("on"));
 document.getElementById("popClose").addEventListener("click", cerrarPop);
 pop.addEventListener("click", e => { if (e.target === pop) cerrarPop(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape" && pop.classList.contains("on")) cerrarPop(); });
@@ -417,12 +469,18 @@ form.addEventListener("submit", async ev => {
   if (!correoOk(datos.correo)) { campo("correo").classList.add("bad"); ok = false; }
   if (!ok) { form.querySelector(".bad input").focus(); return; }
 
-  // Apps Script tarda varios segundos (hoja, Substack, correo, Slack): confirmamos al momento
-  // y el envío termina por detrás; si falla, queda pendiente y se reintenta en la próxima visita.
-  try { localStorage.setItem(CONFIG.CLAVE_LOCAL, JSON.stringify({ correo: datos.correo, pendiente: datos })); } catch (e) {}
-  listo(datos.correo, false);
-  registrar(datos);
+  suscribir(datos);
+  document.getElementById("done").focus({ preventScroll: true });
 });
+
+// Apps Script tarda varios segundos (hoja, Substack, correo, Slack): confirmamos al momento
+// y el envío termina por detrás; si falla, queda pendiente y se reintenta en la próxima visita.
+function suscribir({ nombre, correo, enviarTextos }) {
+  const datos = { nombre, correo, consentimiento: true, enviarTextos, origen: "mesa-ia-literatura-2026", fecha: new Date().toISOString() };
+  try { localStorage.setItem(CONFIG.CLAVE_LOCAL, JSON.stringify({ correo, pendiente: datos })); } catch (e) {}
+  listo(correo, false);
+  registrar(datos);
+}
 </script>
 </body>
 </html>
