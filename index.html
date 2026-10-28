@@ -53,7 +53,7 @@ main{ position:relative; z-index:1; max-width:880px; margin:0 auto; padding:36px
 .hero .lead{ margin:16px 0 0; font-size:18px; line-height:1.45; max-width:50ch; color:rgba(250,246,241,.82); }
 .hero .acts{ display:flex; flex-wrap:wrap; gap:12px; margin-top:30px; }
 .hero-sign{ position:absolute; right:0; top:34px; width:118px; transform:rotate(9deg); pointer-events:none; user-select:none; }
-.hero-sign img{ display:block; width:100%; height:auto; animation:flota 5s ease-in-out infinite; }
+.hero-sign .bicho{ animation:flota 5s ease-in-out infinite; }
 @keyframes flota{ 0%,100%{ transform:translateY(0) rotate(0); } 50%{ transform:translateY(-10px) rotate(-4deg); } }
 @media (max-width:700px){ .hero-sign{ width:72px; top:20px; } .hero{ padding:30px 0 52px; } }
 
@@ -111,7 +111,7 @@ main{ position:relative; z-index:1; max-width:880px; margin:0 auto; padding:36px
 .sus h2 em{ font-style:normal; color:var(--lima); }
 .sus .sub{ font-size:18px; color:rgba(250,246,241,.82); }
 .sus-sign{ position:absolute; z-index:3; right:28px; bottom:100%; margin-bottom:-8px; width:92px; transform:rotate(6deg); transform-origin:50% 100%; pointer-events:none; }
-.sus-sign img{ display:block; width:100%; height:auto; animation:flota 4s ease-in-out infinite; }
+.sus-sign .bicho{ animation:flota 4s ease-in-out infinite; }
 .sus.listo .sus-sign{ display:none; }
 .sheet.sus{ margin-top:110px; }
 @media (max-width:560px){ .sheet.sus{ margin-top:80px; } }
@@ -124,7 +124,7 @@ main{ position:relative; z-index:1; max-width:880px; margin:0 auto; padding:36px
 .pop-card{ position:relative; width:100%; max-width:420px; padding:34px 28px 28px; background:var(--lima); color:var(--tinta); border-radius:3px; text-align:center;
   box-shadow:0 40px 70px -28px rgba(0,0,0,.6); transform:translateY(24px) rotate(-1.5deg); transition:transform .5s var(--ease-out); }
 .pop.on .pop-card{ transform:rotate(-1.5deg); }
-.pop-card img{ display:block; height:84px; width:auto; margin:-78px auto 10px; }
+.pop-card .bicho{ height:84px; width:auto; margin:-78px auto 10px; }
 .pop-card h2{ margin:0; font-size:40px; line-height:1; font-weight:900; letter-spacing:-.04em; }
 .pop-card p{ margin:10px 0 22px; font-size:17px; }
 .pop-close{ position:absolute; top:8px; right:8px; width:40px; height:40px; border:0; border-radius:50%; background:transparent; cursor:pointer; font-size:26px; line-height:1; }
@@ -177,10 +177,19 @@ main{ position:relative; z-index:1; max-width:880px; margin:0 auto; padding:36px
 .done h2{ font-size:clamp(32px,5vw,46px); }
 .done p{ max-width:44ch; margin:14px auto 0; color:rgba(250,246,241,.78); font-size:17px; }
 .parade{ display:inline-flex; justify-content:center; align-items:flex-end; gap:18px; margin:0 auto 26px; padding:18px 26px 14px; background:var(--papel); border-radius:3px; transform:rotate(-1deg); }
-.parade img{ height:70px; width:auto; animation:hop 1.6s ease-in-out infinite; }
-.parade img:nth-child(2){ animation-delay:.2s; } .parade img:nth-child(3){ animation-delay:.4s; } .parade img:nth-child(4){ animation-delay:.6s; }
-@media (max-width:560px){ .parade{ gap:10px; padding:14px 16px 10px; } .parade img{ height:48px; } }
-@keyframes hop{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); } }
+.parade .bicho{ height:70px; width:auto; }
+.parade .bicho:nth-child(2){ --d:-.2s; } .parade .bicho:nth-child(3){ --d:-.45s; } .parade .bicho:nth-child(4){ --d:-.1s; }
+@media (max-width:560px){ .parade{ gap:10px; padding:14px 16px 10px; } .parade .bicho{ height:48px; } }
+
+/* muñecos: cuerpo + brazos y piernas sueltos que giran sobre su articulación */
+.bicho{ display:block; position:relative; width:100%; }
+.bicho img{ position:absolute; inset:0; width:100%; height:100%; }
+.bicho .c{ animation:bob calc(var(--t) / 2) var(--d,0s) ease-in-out infinite alternate; }
+.bicho .p{ transform-origin:var(--ox) var(--oy); animation:paso var(--t) var(--d,0s) ease-in-out infinite alternate; }
+.bicho .p.b{ animation-direction:alternate-reverse; }
+.bicho{ --t:.7s; }
+@keyframes paso{ from{ transform:rotate(calc(var(--a) * -1)); } to{ transform:rotate(var(--a)); } }
+@keyframes bob{ from{ transform:translateY(0); } to{ transform:translateY(-2.5%); } }
 
 footer{ color:rgba(250,246,241,.65); font-size:13.5px; display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:space-between; }
 footer a{ color:var(--papel); }
@@ -196,7 +205,7 @@ footer a{ color:var(--papel); }
   </header>
 
   <section class="hero">
-    <div class="hero-sign" aria-hidden="true"><img alt="" src="assets/interrogacion.webp"></div>
+    <div class="hero-sign" aria-hidden="true"><span class="bicho" data-b="interrogacion"></span></div>
     <span class="kicker">Mesa · IA, literatura y el futuro</span>
     <h1>La vida creativa <em>posthumana</em>.</h1>
     <p class="lead">Gracias por acompañarnos en esta conversación sobre inteligencia artificial, literatura y el futuro. Como agradecimiento, aquí te dejamos los textos con los que la enfocamos.</p>
@@ -221,7 +230,7 @@ footer a{ color:var(--papel); }
   <!-- 02 · SUSCRIPCIÓN -->
   <section class="sheet sus" id="suscribete" aria-labelledby="hSus">
     <div class="sheet-head"><b>02</b><span>Recibe Perpetuo</span></div>
-    <div class="sus-sign" aria-hidden="true"><img alt="" src="assets/exclamacion.webp"></div>
+    <div class="sus-sign" aria-hidden="true"><span class="bicho" data-b="exclamacion"></span></div>
     <div class="sheet-body">
       <form id="form" novalidate>
         <h2 id="hSus">Sigue leyendo <em>con nosotros</em>.</h2>
@@ -254,7 +263,7 @@ footer a{ color:var(--papel); }
 
       <div class="done" id="done" role="status" tabindex="-1">
         <div class="parade" aria-hidden="true">
-          <img alt="" src="assets/punto.webp"><img alt="" src="assets/coma.webp"><img alt="" src="assets/exclamacion.webp"><img alt="" src="assets/interrogacion.webp">
+          <span class="bicho" data-b="punto"></span><span class="bicho" data-b="coma"></span><span class="bicho" data-b="exclamacion"></span><span class="bicho" data-b="interrogacion"></span>
         </div>
         <h2>¡Ya eres parte de Perpetuo!</h2>
         <p id="doneMsg">Revisa tu correo: ahí te esperan los textos de hoy y, pronto, el próximo número.</p>
@@ -265,7 +274,7 @@ footer a{ color:var(--papel); }
   <div class="pop" id="pop" role="dialog" aria-modal="true" aria-labelledby="hPop" hidden>
     <div class="pop-card">
       <button class="pop-close" id="popClose" type="button" aria-label="Cerrar">×</button>
-      <img alt="" src="assets/punto.webp">
+      <span class="bicho" data-b="punto"></span>
       <h2 id="hPop">¿Quieres más?</h2>
       <p>Suscríbete a Perpetuo y recibe crónicas, ensayos y creación en tu correo.</p>
       <a class="btn" href="https://perpetuo.global" id="popGo">Ir a perpetuo.global
@@ -321,6 +330,23 @@ document.getElementById("lista").innerHTML = TEXTOS.map(t => `
       : `<span class="ref">${esc(t.ref)}</span>`}</div>
   </li>`).join("");
 
+/* ---------------- muñecos ---------------- */
+// Cada signo partido en cuerpo + extremidades (assets/partes). ox/oy: articulación en %;
+// a: amplitud del giro; b: va en contrafase (pierna derecha y brazo izquierdo).
+const BICHOS = {
+  punto:         { w: 300, h: 267, p: [[19.7, 18.3, 14, 1], [75.2, 59.8, 14, 0], [37.7, 71.1, 18, 0], [59.2, 71.2, 18, 1]] },
+  coma:          { w: 187, h: 300, p: [[72.9, 78.1, 18, 1], [41.4, 81.8, 18, 0]] },
+  exclamacion:   { w: 220, h: 300, p: [[67.6, 59.5, 14, 0], [27.9, 58.8, 14, 1], [57.8, 76.3, 18, 1], [25.4, 82.9, 18, 0]] },
+  interrogacion: { w: 213, h: 300, p: [[56.3, 81.7, 18, 1], [27.4, 83.8, 18, 0]] }
+};
+document.querySelectorAll(".bicho").forEach(el => {
+  const n = el.dataset.b, b = BICHOS[n];
+  el.style.aspectRatio = b.w + " / " + b.h;
+  el.innerHTML = b.p.map(([ox, oy, a, fase], i) =>
+    `<img class="p${fase ? " b" : ""}" alt="" src="assets/partes/${n}-${i}.webp" style="--ox:${ox}%;--oy:${oy}%;--a:${a}deg">`).join("") +
+    `<img class="c" alt="" src="assets/partes/${n}-cuerpo.webp">`;
+});
+
 /* ---------------- suscripción ---------------- */
 const form = document.getElementById("form");
 const sus = document.getElementById("suscribete");
@@ -342,6 +368,7 @@ function listo(correo, repetido) {
 try {
   const previo = JSON.parse(localStorage.getItem(CONFIG.CLAVE_LOCAL) || "null");
   if (previo && previo.correo) listo(previo.correo, true);
+  if (previo && previo.pendiente) setTimeout(() => registrar(previo.pendiente), 0);
 } catch (e) {}
 
 /* pop-up: una vez por visita, y no a quien ya se suscribió aquí */
@@ -366,6 +393,15 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && pop.classL
 
 form.correo.addEventListener("input", () => campo("correo").classList.remove("bad"));
 
+function registrar(datos) {
+  if (!CONFIG.WEBHOOK_URL) return console.info("[modo demostración] se habría enviado:", datos);
+  // text/plain evita el preflight de CORS que Apps Script no contesta; keepalive deja terminar el envío aunque cierren la página
+  fetch(CONFIG.WEBHOOK_URL, { method: "POST", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(datos) })
+    .then(r => r.json())
+    .then(j => { if (j.ok) try { localStorage.setItem(CONFIG.CLAVE_LOCAL, JSON.stringify({ correo: datos.correo })); } catch (e) {} })
+    .catch(e => console.error(e));
+}
+
 form.addEventListener("submit", async ev => {
   ev.preventDefault();
   err.classList.remove("on");
@@ -381,27 +417,11 @@ form.addEventListener("submit", async ev => {
   if (!correoOk(datos.correo)) { campo("correo").classList.add("bad"); ok = false; }
   if (!ok) { form.querySelector(".bad input").focus(); return; }
 
-  btn.disabled = true;
-  try {
-    let repetido = false;
-    if (CONFIG.WEBHOOK_URL) {
-      // text/plain evita el preflight de CORS que Apps Script no contesta
-      const r = await fetch(CONFIG.WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(datos) });
-      const j = await r.json();
-      if (j.error === "correo") { campo("correo").classList.add("bad"); form.correo.focus(); return; }
-      if (!j.ok) throw new Error(j.error || "respuesta");
-      repetido = !!j.repetido;
-    } else {
-      console.info("[modo demostración] se habría enviado:", datos);
-    }
-    try { localStorage.setItem(CONFIG.CLAVE_LOCAL, JSON.stringify({ correo: datos.correo })); } catch (e) {}
-    listo(datos.correo, repetido);
-  } catch (e) {
-    console.error(e);
-    err.classList.add("on");
-  } finally {
-    btn.disabled = false;
-  }
+  // Apps Script tarda varios segundos (hoja, Substack, correo, Slack): confirmamos al momento
+  // y el envío termina por detrás; si falla, queda pendiente y se reintenta en la próxima visita.
+  try { localStorage.setItem(CONFIG.CLAVE_LOCAL, JSON.stringify({ correo: datos.correo, pendiente: datos })); } catch (e) {}
+  listo(datos.correo, false);
+  registrar(datos);
 });
 </script>
 </body>
