@@ -10,10 +10,11 @@ Página complementaria de la mesa sobre IA, literatura y el futuro (28 oct 2026)
 
 ## Backend (Apps Script, sin n8n)
 1. En script.google.com, desde perpetuo.revista@gmail.com, crear un proyecto y pegar `Correos.gs`.
-2. Ejecutar `instalar()` una vez: crea la hoja **"Mesa IA y literatura · Correos"** y pide los permisos.
-3. Implementar → Nueva implementación → Aplicación web · Ejecutar como: yo · Acceso: cualquier usuario.
-4. Pegar la URL `/exec` en `CONFIG.WEBHOOK_URL` de `index.html`.
+2. En Configuración del proyecto → Propiedades de la secuencia de comandos, agregar `SLACK_TOKEN` (la misma clave del respaldo de Suscriptores). Ejecutar `probarSlack()` para confirmar que llega el aviso.
+3. Ejecutar `instalar()` una vez: crea la hoja **"Mesa IA y literatura · Correos"** y pide los permisos.
+4. Implementar → Nueva implementación → Aplicación web · Ejecutar como: yo · Acceso: cualquier usuario.
+5. Pegar la URL `/exec` en `CONFIG.WEBHOOK_URL` de `index.html`.
 
 Con `WEBHOOK_URL` vacío, la página funciona en **modo demostración**: no envía nada y muestra en la consola lo que habría enviado.
 
-Cada registro: valida el correo y el consentimiento, no repite correos, intenta el alta directa en Substack (si falla, la columna dice "pendiente" para importarlo a mano), manda la lista de textos si la persona lo pidió y anota todo en la hoja.
+Cada registro: valida el correo y el consentimiento, no repite correos, intenta el alta directa en Substack (si falla, la columna dice "pendiente" para importarlo a mano), manda la lista de textos si la persona lo pidió, anota todo en la hoja y avisa en Slack (#suscriptores-notificacion).
